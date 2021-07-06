@@ -191,7 +191,7 @@ class ApiControllers{
     userBooking = (request: express.Request, response: express.Response) => {
         try{
             const date = new Date();
-            console.log(date);
+            //console.log(date);
             client.connect();
             const userBooking = request.body;
             client.query("SELECT * FROM uma.users WHERE email = $1",[`${userBooking.email}`], (err, result) => {

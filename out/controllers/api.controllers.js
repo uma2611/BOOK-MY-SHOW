@@ -178,7 +178,7 @@ var ApiControllers = /** @class */ (function () {
         this.userBooking = function (request, response) {
             try {
                 var date_1 = new Date();
-                console.log(date_1);
+                //console.log(date);
                 client.connect();
                 var userBooking_1 = request.body;
                 client.query("SELECT * FROM uma.users WHERE email = $1", ["" + userBooking_1.email], function (err, result) {

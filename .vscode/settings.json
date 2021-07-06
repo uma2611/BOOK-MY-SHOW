@@ -1,0 +1,4 @@
+{
+    "appService.deploySubpath": ".",
+    "appService.defaultWebAppToDeploy": "/subscriptions/83c240b8-2100-4ded-a3e4-5a0ce3a38b8c/resourceGroups/AppBookMyShow-rg/providers/Microsoft.Web/sites/AppBookMyShow"
+}
