@@ -107,71 +107,83 @@ var ApiControllers = /** @class */ (function () {
         this.userSignup = function (request, response) {
             try {
                 var userSignup_1 = request.body;
-                //console.log(userSignup);
-                if (validator_1.default.isEmail(userSignup_1.email)) {
-                    client.connect();
-                    client.query("SELECT email FROM uma.users WHERE email = $1", [userSignup_1.email], function (err, result) {
-                        //console.log(result.rows);
-                        if (err) {
-                            response.status(500).send(err);
-                        }
-                        else {
-                            if (result.rows.length === 0) {
-                                client.query("INSERT INTO uma.users (user_name, email, password) VALUES ($1, $2, $3)", [userSignup_1.user_name, userSignup_1.email, userSignup_1.password], function (err, result) {
-                                    if (err) {
-                                        response.status(400).send("Data not inserted into database " + err);
-                                    }
-                                    else {
-                                        response.status(200).send("User registered successfully :) ");
-                                    }
-                                });
+                if (userSignup_1.email && userSignup_1.user_name && userSignup_1.password) {
+                    //console.log(userSignup);
+                    if (validator_1.default.isEmail(userSignup_1.email)) {
+                        client.connect();
+                        client.query("SELECT email FROM uma.users WHERE email = $1", [userSignup_1.email], function (err, result) {
+                            //console.log(result.rows);
+                            if (err) {
+                                response.status(500).send(err);
                             }
                             else {
-                                response.status(200).send("This user already present please try another");
+                                if (result.rows.length === 0) {
+                                    client.query("INSERT INTO uma.users (user_name, email, password) VALUES ($1, $2, $3)", [userSignup_1.user_name, userSignup_1.email, userSignup_1.password], function (err, result) {
+                                        if (err) {
+                                            response.status(400).send("Data not inserted into database " + err);
+                                        }
+                                        else {
+                                            response.status(200).send("User registered successfully :) ");
+                                        }
+                                    });
+                                }
+                                else {
+                                    response.status(200).send("This user already present please try another");
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
+                    else {
+                        response.status(400).send("Please enter correct email");
+                    }
                 }
                 else {
-                    response.status(400).send("Please enter correct email");
+                    //console.log("Something is miss");
+                    throw new Error();
                 }
+                //console.log(userSignup);
             }
             catch (err) {
-                response.status(400).send(err + " please insert user name, email, password in body request");
+                response.status(400).send(err + " please insert 'user_name', 'email', 'password' in body request");
             }
         };
         // 5 -  User login 
         this.userLogin = function (request, response) {
             try {
                 var userData_1 = request.body;
-                client.connect();
-                client.query("SELECT * FROM uma.users WHERE email = $1 AND password = $2", ["" + userData_1.email, "" + userData_1.password], function (err, result) {
-                    if (err) {
-                        response.status(500).send("Query not executed " + err);
-                    }
-                    else {
-                        if (result.rows[0]["token"] === null) {
-                            var userEmail = userData_1.email;
-                            var user = { name: userEmail };
-                            var accessToken = jsonwebtoken_1.default.sign(user, "myNameIsUmaShankarAndIMSoftwareDevelopmentEngineerAtCAWStudios");
-                            //response.send(accessToken);
-                            client.query("UPDATE uma.users set token = $1 WHERE email =$2", ["" + accessToken, "" + userData_1.email], function (error, result2) {
-                                if (error) {
-                                    response.status(500).send("Not updated in database " + error);
-                                }
-                                else {
-                                    response.status(200).send("user login successfully :) ");
-                                }
-                            });
+                if (userData_1.email && userData_1.password) {
+                    client.connect();
+                    client.query("SELECT * FROM uma.users WHERE email = $1 AND password = $2", ["" + userData_1.email, "" + userData_1.password], function (err, result) {
+                        if (err) {
+                            response.status(500).send("Query not executed " + err);
                         }
                         else {
-                            response.status(200).send("user already logged in :) ");
+                            if (result.rows[0]["token"] === null) {
+                                var userEmail = userData_1.email;
+                                var user = { name: userEmail };
+                                var accessToken = jsonwebtoken_1.default.sign(user, "myNameIsUmaShankarAndIMSoftwareDevelopmentEngineerAtCAWStudios");
+                                //response.send(accessToken);
+                                client.query("UPDATE uma.users set token = $1 WHERE email =$2", ["" + accessToken, "" + userData_1.email], function (error, result2) {
+                                    if (error) {
+                                        response.status(500).send("Not updated in database " + error);
+                                    }
+                                    else {
+                                        response.status(200).send("user login successfully :) ");
+                                    }
+                                });
+                            }
+                            else {
+                                response.status(200).send("user already logged in :) ");
+                            }
                         }
-                    }
-                });
+                    });
+                }
+                else {
+                    throw new Error();
+                }
             }
             catch (err) {
-                response.status(400).send(err + " please insert email, password in body request");
+                response.status(400).send(err + " please insert 'email', 'password' in body request");
             }
         };
         // 6 - Ability to book a ticket. (No payment gateway integration is required. Assume tickets can be booked for free)
@@ -179,73 +191,78 @@ var ApiControllers = /** @class */ (function () {
             try {
                 var date_1 = new Date();
                 //console.log(date);
-                client.connect();
                 var userBooking_1 = request.body;
-                client.query("SELECT * FROM uma.users WHERE email = $1", ["" + userBooking_1.email], function (err, result) {
-                    if (err) {
-                        response.status(500).send("Query not executed " + err);
-                    }
-                    else {
-                        if (result.rows[0]["token"] === null) {
-                            response.status(200).send("This user not logged in");
+                if (userBooking_1.movie_id && userBooking_1.email && userBooking_1.seats) {
+                    client.connect();
+                    client.query("SELECT * FROM uma.users WHERE email = $1", ["" + userBooking_1.email], function (err, result) {
+                        if (err) {
+                            response.status(500).send("Query not executed " + err);
                         }
                         else {
-                            var token = result.rows[0]["token"];
-                            jsonwebtoken_1.default.verify(token, "myNameIsUmaShankarAndIMSoftwareDevelopmentEngineerAtCAWStudios", function (error, res) {
-                                if (error) {
-                                    response.status(200).send("This is not a correct user");
-                                }
-                                else {
-                                    client.query("SELECT seats FROM uma.movies WHERE movie_id =$1", ["" + userBooking_1.movie_id], function (err, result) {
-                                        if (err) {
-                                            response.status(500).send("Query not executed " + err);
-                                        }
-                                        else {
-                                            var movieArray;
-                                            var userArray;
-                                            movieArray = result.rows[0]["seats"];
-                                            //response.send(movieArray);
-                                            userArray = userBooking_1.seats;
-                                            var count = 0;
-                                            for (var i = 0; i < userArray.length; i++) {
-                                                if (movieArray.includes(userArray[i])) {
-                                                    count++;
-                                                    movieArray.forEach(function (element, index) {
-                                                        if (element === userArray[i]) {
-                                                            movieArray.splice(index, 1);
+                            if (result.rows[0]["token"] === null) {
+                                response.status(200).send("This user not logged in");
+                            }
+                            else {
+                                var token = result.rows[0]["token"];
+                                jsonwebtoken_1.default.verify(token, "myNameIsUmaShankarAndIMSoftwareDevelopmentEngineerAtCAWStudios", function (error, res) {
+                                    if (error) {
+                                        response.status(200).send("This is not a correct user");
+                                    }
+                                    else {
+                                        client.query("SELECT seats FROM uma.movies WHERE movie_id =$1", ["" + userBooking_1.movie_id], function (err, result) {
+                                            if (err) {
+                                                response.status(500).send("Query not executed " + err);
+                                            }
+                                            else {
+                                                var movieArray;
+                                                var userArray;
+                                                movieArray = result.rows[0]["seats"];
+                                                //response.send(movieArray);
+                                                userArray = userBooking_1.seats;
+                                                var count = 0;
+                                                for (var i = 0; i < userArray.length; i++) {
+                                                    if (movieArray.includes(userArray[i])) {
+                                                        count++;
+                                                        movieArray.forEach(function (element, index) {
+                                                            if (element === userArray[i]) {
+                                                                movieArray.splice(index, 1);
+                                                            }
+                                                        });
+                                                    }
+                                                    else {
+                                                        response.status(200).send(userArray[i] + " " + "seat not available\n" + "available seats are " + movieArray);
+                                                        return;
+                                                    }
+                                                }
+                                                if (count === userArray.length) {
+                                                    client.query("UPDATE uma.movies SET seats = $1 WHERE movie_id = $2", [movieArray, userBooking_1.movie_id], function (err, result) {
+                                                        if (err) {
+                                                            response.status(500).send("Query not executed " + err);
+                                                        }
+                                                    });
+                                                    client.query("UPDATE uma.users SET seats = $1, booking_date =$3 WHERE email = $2 ;", [userArray, userBooking_1.email, date_1], function (err, result) {
+                                                        if (err) {
+                                                            response.status(500).send("Query not executed " + err);
+                                                        }
+                                                        else {
+                                                            response.status(200).send("BOOKING SUCCESSFUL: " + userArray);
                                                         }
                                                     });
                                                 }
-                                                else {
-                                                    response.status(200).send(userArray[i] + " " + "seat not available\n" + "available seats are " + movieArray);
-                                                    return;
-                                                }
                                             }
-                                            if (count === userArray.length) {
-                                                client.query("UPDATE uma.movies SET seats = $1 WHERE movie_id = $2", [movieArray, userBooking_1.movie_id], function (err, result) {
-                                                    if (err) {
-                                                        response.status(500).send("Query not executed " + err);
-                                                    }
-                                                });
-                                                client.query("UPDATE uma.users SET seats = $1, booking_date =$3 WHERE email = $2 ;", [userArray, userBooking_1.email, date_1], function (err, result) {
-                                                    if (err) {
-                                                        response.status(500).send("Query not executed " + err);
-                                                    }
-                                                    else {
-                                                        response.status(200).send("BOOKING SUCCESSFUL: " + userArray);
-                                                    }
-                                                });
-                                            }
-                                        }
-                                    });
-                                }
-                            });
+                                        });
+                                    }
+                                });
+                            }
                         }
-                    }
-                });
+                    });
+                }
+                else {
+                    throw new Error();
+                }
             }
             catch (err) {
-                response.status(400).send(err + " please insert movie_id, email, seats in request body");
+                response.status(400).send(err + " please insert 'movie_id', 'email', 'seats' in request body");
             }
         };
     }

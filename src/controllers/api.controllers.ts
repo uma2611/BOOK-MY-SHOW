@@ -117,7 +117,8 @@ class ApiControllers{
     userSignup =  (request: express.Request, response:express.Response) => {
         try{
             const userSignup = request.body;
-            //console.log(userSignup);
+            if(userSignup.email && userSignup.user_name && userSignup.password){
+                //console.log(userSignup);
                 if(validator.isEmail(userSignup.email)){
                     client.connect();
                     client.query("SELECT email FROM uma.users WHERE email = $1", [userSignup.email], (err, result) => {
@@ -143,8 +144,14 @@ class ApiControllers{
                 } else{
                     response.status(400).send("Please enter correct email");
                 } 
+            } else{
+                //console.log("Something is miss");
+                throw new Error();
+            }
+            //console.log(userSignup);
+                
         } catch(err) {
-            response.status(400).send(err + " please insert user name, email, password in body request");
+            response.status(400).send(err + " please insert 'user_name', 'email', 'password' in body request");
         }
     }
 
@@ -156,7 +163,8 @@ class ApiControllers{
     userLogin = (request: express.Request, response: express.Response) => {
         try{
             const userData = request.body;
-            client.connect();
+            if(userData.email && userData.password){
+                client.connect();
             client.query("SELECT * FROM uma.users WHERE email = $1 AND password = $2",[`${userData.email}`,`${userData.password}`],(err, result) => {
                 if(err){
                     response.status(500).send("Query not executed " + err);
@@ -181,8 +189,12 @@ class ApiControllers{
                 }
                 
             });
+            } else{
+                throw new Error();
+            }
+            
         } catch(err){
-            response.status(400).send(err + " please insert email, password in body request");
+            response.status(400).send(err + " please insert 'email', 'password' in body request");
         }
     }
 
@@ -192,8 +204,9 @@ class ApiControllers{
         try{
             const date = new Date();
             //console.log(date);
-            client.connect();
             const userBooking = request.body;
+            if(userBooking.movie_id && userBooking.email && userBooking.seats){
+                client.connect();
             client.query("SELECT * FROM uma.users WHERE email = $1",[`${userBooking.email}`], (err, result) => {
                 if(err){
                     response.status(500).send("Query not executed " + err);
@@ -256,8 +269,12 @@ class ApiControllers{
                     }
                 }
             });
+            } else{
+                throw new Error();
+            }
+            
         } catch(err){
-            response.status(400).send(err + " please insert movie_id, email, seats in request body");
+            response.status(400).send(err + " please insert 'movie_id', 'email', 'seats' in request body");
         }
     }
 
